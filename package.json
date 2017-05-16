@@ -1,0 +1,18 @@
+{
+  "name": "26springclient",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "lodash": "^4.17.4",
+    "node.extend": "^2.0.0",
+    "nodeimu": "^2.1.7",
+    "serialport": "^3.1.2",
+    "socket.io-client": "^2.0.1"
+  }
+}
