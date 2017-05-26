@@ -1,8 +1,9 @@
 var nodeimu = require('nodeimu');
 var IMU = new nodeimu.IMU();
 var os = require('os');
+//console.log("os.userInfo",os.getNetworkInterfaces())
 
-console.log(os.hostname());
+//console.log(os.hostname());
 var robotData = {};
 robotData.counter = 0;
 robotData.timestamp = Date.now();
@@ -12,7 +13,9 @@ var irobot = require('./irobot');
 var robot = new irobot.Robot('/dev/ttyUSB0');
 
 robot.on('sensordata', function(data) {
-    console.log("data", data.cliff_sensors);
+    //console.log("data", data.cliff_sensors);
+    robotData.passive = data.state.mode.passive;
+    if(robotData.passive) robot.safeMode();
     robotData.botSensors = data;
     robotData.cliff_R = data.cliff_sensors.right.signal.raw;
     robotData.cliff_FR = data.cliff_sensors.front_right.signal.raw;
@@ -26,11 +29,32 @@ robot.on('sensordata', function(data) {
     robotData.bumpBoth = data.bumpers.both.activated;
 });
 
+function onHatSensors(err,data){
+    IMU.getValue(function(err, data) {
+        robotData.hatSensors = data;
+      //  console.log("onHat",robotData);
+    });
+}
+
+var hatSensorsInterval = setInterval(onHatSensors, 250);
+
 var socket = require('socket.io-client')('http://math.seattleacademy.org:1500');
 socket.on('connect', function() {
     console.log("connect");
     placeBot();
 });
+
+socket.on("drive",function(data){
+    console.log("data",data);
+    if(data.name == "pi2"){
+    robot.drive({ left: data.left, right: data.right });
+    }
+})
+
+
+socket.on('broadcast',function(err,data){
+    console.log('broadcast',err,data);
+})
 socket.on('postAllBots', function(bots) {
     //console.warn('postAllBots',bots);
 
@@ -45,6 +69,10 @@ socket.on('postAllBots', function(bots) {
     // console.log("postAllBots", bots)
 
 });
+
+socket.on('',function(err,data){
+    console.log(err,data,"emitbot")
+})
 socket.on('disconnect', function() {
 
     console.log("disconnect");
@@ -150,4 +178,8 @@ function placeBot() {
 }
 
 placeBot();
+socket.on('event', function(data){
+    console.log(data);
+});
+
 setInterval(placeBot, 100);
